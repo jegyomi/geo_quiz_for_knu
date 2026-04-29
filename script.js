@@ -22,19 +22,30 @@ const professorBGM = {
     "김성일 조교쌤": "assets/bgm_jo.mp3" 
 };
 
-// 📌 모든 교수님, 조교쌤 보이스 데이터베이스 연동
 const voiceData = {
-    "김종근 교수님": { hover: "assets/kim_hover.mp3", correct: "assets/kim_correct.mp3", wrong: "assets/kim_wrong.mp3", finish: "assets/kim_finish.mp3" },
-    "임은진 교수님": { hover: "assets/lim_hover.mp3", correct: "assets/lim_correct.mp3", wrong: "assets/lim_wrong.mp3", finish: "assets/lim_finish.mp3" },
-    "유재진 교수님": { hover: "assets/yoo_hover.mp3", correct: "assets/yoo_correct.mp3", wrong: "assets/yoo_wrong.mp3", finish: "assets/yoo_finish.mp3" },
-    "류주현 교수님": { hover: "assets/ryu_hover.mp3", correct: "assets/ryu_correct.mp3", wrong: "assets/ryu_wrong.mp3", finish: "assets/ryu_finish.mp3" },
-    "박지훈 교수님": { hover: "assets/park_hover.mp3", correct: "assets/park_correct.mp3", wrong: "assets/park_wrong.mp3", finish: "assets/park_finish.mp3" },
+    "김종근 교수님": { 
+        hover: "assets/kim_hover.mp3", correct: "assets/kim_correct.mp3", wrong: "assets/kim_wrong.mp3", finish: "assets/kim_finish.mp3",
+        img_correct: "assets/kim_good.jpg", img_wrong: "assets/kim_bad.jpg", img_finish: "assets/kim_finish.jpg"
+    },
+    "임은진 교수님": { 
+        hover: "assets/lim_hover.mp3", correct: "assets/lim_correct.mp3", wrong: "assets/lim_wrong.mp3", finish: "assets/lim_finish.mp3",
+        img_correct: "assets/lim_good.jpg", img_wrong: "assets/lim_bad.jpg", img_finish: "assets/lim_finish.jpg"
+    },
+    "유재진 교수님": { 
+        hover: "assets/yoo_hover.mp3", correct: "assets/yoo_correct.mp3", wrong: "assets/yoo_wrong.mp3", finish: "assets/yoo_finish.mp3",
+        img_correct: "assets/yoo_good.jpg", img_wrong: "assets/yoo_bad.jpg", img_finish: "assets/yoo_finish.jpg"
+    },
+    "류주현 교수님": { 
+        hover: "assets/ryu_hover.mp3", correct: "assets/ryu_correct.mp3", wrong: "assets/ryu_wrong.mp3", finish: "assets/ryu_finish.mp3",
+        img_correct: "assets/ryu_good.jpg", img_wrong: "assets/ryu_bad.jpg", img_finish: "assets/ryu_finish.jpg"
+    },
+    "박지훈 교수님": { 
+        hover: "assets/park_hover.mp3", correct: "assets/park_correct.mp3", wrong: "assets/park_wrong.mp3", finish: "assets/park_finish.mp3",
+        img_correct: "assets/park_good.jpg", img_wrong: "assets/park_bad.jpg", img_finish: "assets/park_finish.jpg"
+    },
     "김성일 조교쌤": { 
-        start: "assets/jo_start.mp3", 
-        welcome: "assets/jo_welcome.mp3", 
-        correct: "assets/snd_correct.mp3", 
-        wrong: "assets/snd_wrong.mp3", 
-        finish: "assets/jo_finish.mp3" 
+        start: "assets/jo_start.mp3", welcome: "assets/jo_welcome.mp3", correct: "assets/snd_correct.mp3", wrong: "assets/snd_wrong.mp3", finish: "assets/jo_finish.mp3",
+        img_correct: "assets/jo_good.jpg", img_wrong: "assets/jo_bad.jpg", img_finish: "assets/jo_finish.jpg"
     }
 };
 
@@ -48,7 +59,6 @@ const regionMapImages = {
     "Oceania": "assets/오세아니아.jpg", "Africa": "assets/아프리카.jpg"
 };
 
-// 📌 국가 데이터베이스 
 const regionData = {
     "NortheastAsia": [
         { country: "대한민국", capital: "서울", x: 48.25, y: 50.46 }, 
@@ -297,7 +307,6 @@ function toggleMute() {
 function selectMode(mode) {
     currentMode = mode;
     document.getElementById('step-mode').classList.remove('active');
-    
     if (mode === 'learning') {
         document.getElementById('step-professor').classList.add('active');
     } else if (mode === 'test') {
@@ -313,23 +322,15 @@ function selectProfessor(prof) {
     document.getElementById('step-region').classList.add('active');
 }
 
-// 📌 [수정됨] 학습/시험 모드 무관하게 무조건 모든 문제(startGame)로 직행!
 function selectRegion(region) {
     currentRegion = region;
     currentQuestionList = [...regionData[region]].sort(() => Math.random() - 0.5);
-    
     document.getElementById('step-region').classList.remove('active');
-    
     const mapBg = document.getElementById('map-bg');
-    if (regionMapImages[region]) {
-        mapBg.src = regionMapImages[region];
-    }
-
+    if (regionMapImages[region]) mapBg.src = regionMapImages[region];
     if (currentMode === 'test') {
         if(voiceData["김성일 조교쌤"].welcome) playVoice(voiceData["김성일 조교쌤"].welcome);
     }
-    
-    // 모드와 상관없이 문항 수 선택창 생략하고 바로 시작!
     startGame();
 }
 
@@ -348,21 +349,11 @@ function startTimer() {
 function startGame() {
     currentQuestionIndex = 0;
     testScore = 0; 
-    
-    if (professorBGM[currentProfessor]) {
-        playBGM(professorBGM[currentProfessor]);
-    }
-    
+    if (professorBGM[currentProfessor]) playBGM(professorBGM[currentProfessor]);
     document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
     document.getElementById('step-game').classList.add('active');
-    
-    const regionNamesKR = { 
-        "NortheastAsia": "동북아시아", "SoutheastAsia": "동남아시아", "SouthAsia": "남부아시아", 
-        "SouthwestAsia": "서남아시아", "NorthAmerica": "북아메리카", "CentralAmerica": "중앙아메리카", 
-        "SouthAmerica": "남아메리카", "Europe": "유럽", "Oceania": "오세아니아", "Africa": "아프리카" 
-    };
+    const regionNamesKR = { "NortheastAsia": "동북아시아", "SoutheastAsia": "동남아시아", "SouthAsia": "남부아시아", "SouthwestAsia": "서남아시아", "NorthAmerica": "북아메리카", "CentralAmerica": "중앙아메리카", "SouthAmerica": "남아메리카", "Europe": "유럽", "Oceania": "오세아니아", "Africa": "아프리카" };
     document.getElementById('game-title').innerText = `${regionNamesKR[currentRegion]} (${currentMode==='learning'?'학습':'시험'})`;
-    
     if(currentMode === 'learning') startTimer();
     showNextQuestion();
 }
@@ -371,17 +362,13 @@ function showNextQuestion() {
     document.getElementById('input-country').value = "";
     document.getElementById('input-capital').value = "";
     document.getElementById('input-country').focus();
-
     const q = currentQuestionList[currentQuestionIndex];
     const mapInner = document.getElementById('map-inner');
     document.querySelectorAll('.map-dot').forEach(d => d.remove());
-    
     const dot = document.createElement('div');
     dot.className = "map-dot";
-    
     dot.style.left = q.x + "%";
     dot.style.top = q.y + "%";
-    
     if(currentMode === 'learning') {
         dot.style.cursor = "help";
         dot.onclick = () => alert(`정답: ${q.country} - ${q.capital}`);
@@ -389,12 +376,24 @@ function showNextQuestion() {
     mapInner.appendChild(dot);
 }
 
-function showPopup(msg, success, duration = 1200) {
+// 📌 [보완 수정] showPopup 함수 - 이미지가 무조건 보이도록 display 스타일 강제 제어
+function showPopup(msg, success, duration = 1200, customImg = null) {
     const p = document.getElementById('toast-popup');
     document.getElementById('toast-text').innerText = msg;
-    document.getElementById('toast-img').src = success ? "assets/jiho_good.jpg" : "assets/jiho_bad.jpg";
-    p.className = `show ${success ? 'toast-success' : 'toast-error'}`;
+    const defaultImg = success ? "assets/jiho_good.jpg" : "assets/jiho_bad.jpg";
+    const imgEl = document.getElementById('toast-img');
+
+    // 📌 이미지를 무조건 보이게 처리
+    imgEl.style.display = "block";
+    imgEl.src = customImg ? customImg : defaultImg;
     
+    // 파일이 없을 경우 기본 지호 이미지로 대체
+    imgEl.onerror = function() { 
+        this.src = defaultImg; 
+        this.onerror = null; // 무한 루프 방지
+    };
+
+    p.className = `show ${success ? 'toast-success' : 'toast-error'}`;
     setTimeout(() => p.className = "", duration);
 }
 
@@ -402,35 +401,25 @@ function checkAnswer() {
     const q = currentQuestionList[currentQuestionIndex];
     const inCountry = document.getElementById('input-country').value.trim();
     const inCapital = document.getElementById('input-capital').value.trim();
-    
     const isCorrect = (inCountry === q.country && inCapital === q.capital);
+    const profInfo = voiceData[currentProfessor];
 
     if (isCorrect) {
-        showPopup(`🎉 정답!`, true, 1200);
+        let correctImg = profInfo && profInfo.img_correct ? profInfo.img_correct : null;
+        showPopup(`🎉 정답!`, true, 1200, correctImg);
         if (currentMode === 'test') testScore++; 
-        
-        if (voiceData[currentProfessor] && voiceData[currentProfessor].correct) {
-            playVoice(voiceData[currentProfessor].correct);
-        }
+        if (profInfo && profInfo.correct) playVoice(profInfo.correct);
     } else {
-        if (currentMode === 'test') {
-            showPopup(`❌ 오답!\n정답은 [${q.country} - ${q.capital}]`, false, 1500);
-        } else {
-            showPopup(`❌ 오답입니다.`, false, 1200);
-        }
-        
-        if (voiceData[currentProfessor] && voiceData[currentProfessor].wrong) {
-            playVoice(voiceData[currentProfessor].wrong);
-        }
+        let wrongImg = profInfo && profInfo.img_wrong ? profInfo.img_wrong : null;
+        if (currentMode === 'test') showPopup(`❌ 오답!\n정답은 [${q.country} - ${q.capital}]`, false, 1500, wrongImg);
+        else showPopup(`❌ 오답입니다.`, false, 1200, wrongImg);
+        if (profInfo && profInfo.wrong) playVoice(profInfo.wrong);
     }
 
     if (currentMode === 'test' || isCorrect) {
         setTimeout(() => {
-            if (++currentQuestionIndex < currentQuestionList.length) {
-                showNextQuestion();
-            } else {
-                endGame(); 
-            }
+            if (++currentQuestionIndex < currentQuestionList.length) showNextQuestion();
+            else endGame(); 
         }, currentMode === 'test' ? 1600 : 1300); 
     }
 }
@@ -438,7 +427,8 @@ function checkAnswer() {
 function endGame() {
     clearInterval(timerInterval);
     let msg = "";
-    
+    const profInfo = voiceData[currentProfessor];
+    let finishImg = profInfo && profInfo.img_finish ? profInfo.img_finish : null;
     if (currentMode === 'learning') {
         const finalTime = document.getElementById('timer-display').innerText.replace('⏱️: ', '');
         msg = `🎓 종강이닷!\n(소요시간: ${finalTime})`;
@@ -447,68 +437,12 @@ function endGame() {
         const percent = Math.round((testScore / total) * 100);
         msg = `💯 시험 종료!\n점수: ${percent}점 (${testScore}/${total})`;
     }
-    
-    showPopup(msg, true, 3000);
-    
-    if (voiceData[currentProfessor] && voiceData[currentProfessor].finish) {
-        playVoice(voiceData[currentProfessor].finish);
-    }
-    
+    showPopup(msg, true, 3000, finishImg);
+    if (profInfo && profInfo.finish) playVoice(profInfo.finish);
     setTimeout(() => { location.reload(); }, 3000);
 }
 
-function goHome() {
-    if(confirm("처음으로 돌아갈까요?")) location.reload();
-}
-
-document.getElementById('input-country').addEventListener('keypress', (e) => {
-    if (e.key === 'Enter') {
-        e.preventDefault();
-        document.getElementById('input-capital').focus();
-    }
-});
-
-document.getElementById('input-capital').addEventListener('keypress', (e) => {
-    if (e.key === 'Enter') {
-        e.preventDefault();
-        checkAnswer();
-    }
-});
-
-document.getElementById('map-inner').addEventListener('click', function(e) {
-    if(e.target.classList.contains('map-dot')) return; 
-    
-    const rect = this.getBoundingClientRect();
-    
-    const bgImg = new Image();
-    const style = window.getComputedStyle(this);
-    const bgSrc = style.backgroundImage.slice(5, -2).replace(/"/g, "");
-    if(!bgSrc || bgSrc === 'none') return;
-    
-    bgImg.src = bgSrc;
-    bgImg.onload = function() {
-        const imgRatio = this.width / this.height;
-        const containerRatio = rect.width / rect.height;
-
-        let renderW, renderH, offsetX, offsetY;
-
-        if (imgRatio > containerRatio) {
-            renderW = rect.width;
-            renderH = rect.width / imgRatio;
-            offsetX = 0;
-            offsetY = (rect.height - renderH) / 2;
-        } else {
-            renderH = rect.height;
-            renderW = rect.height * imgRatio;
-            offsetX = (rect.width - renderW) / 2;
-            offsetY = 0;
-        }
-
-        const x = ((e.clientX - rect.left - offsetX) / renderW) * 100;
-        const y = ((e.clientY - rect.top - offsetY) / renderH) * 100;
-
-        if (x >= 0 && x <= 100 && y >= 0 && y <= 100) {
-            alert(`📍 오차 보정 완료 좌표!\n\nx: ${x.toFixed(2)}, y: ${y.toFixed(2)}\n\n(이 값을 복사해서 regionData에 넣어주세요)`);
-        }
-    };
-});
+function goHome() { if(confirm("처음으로 돌아갈까요?")) location.reload(); }
+document.getElementById('input-country').addEventListener('keypress', (e) => { if (e.key === 'Enter') { e.preventDefault(); document.getElementById('input-capital').focus(); } });
+document.getElementById('input-capital').addEventListener('keypress', (e) => { if (e.key === 'Enter') { e.preventDefault(); checkAnswer(); } });
+document.getElementById('map-inner').addEventListener('click', function(e) { if(e.target.classList.contains('map-dot')) return; const rect = this.getBoundingClientRect(); const bgImg = new Image(); const style = window.getComputedStyle(this); const bgSrc = style.backgroundImage.slice(5, -2).replace(/"/g, ""); if(!bgSrc || bgSrc === 'none') return; bgImg.src = bgSrc; bgImg.onload = function() { const imgRatio = this.width / this.height; const containerRatio = rect.width / rect.height; let renderW, renderH, offsetX, offsetY; if (imgRatio > containerRatio) { renderW = rect.width; renderH = rect.width / imgRatio; offsetX = 0; offsetY = (rect.height - renderH) / 2; } else { renderH = rect.height; renderW = rect.height * imgRatio; offsetX = (rect.width - renderW) / 2; offsetY = 0; } const x = ((e.clientX - rect.left - offsetX) / renderW) * 100; const y = ((e.clientY - rect.top - offsetY) / renderH) * 100; if (x >= 0 && x <= 100 && y >= 0 && y <= 100) alert(`📍 오차 보정 완료 좌표!\n\nx: ${x.toFixed(2)}, y: ${y.toFixed(2)}\n\n(이 값을 복사해서 regionData에 넣어주세요)`); }; });
