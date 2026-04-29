@@ -3,6 +3,7 @@ let currentProfessor = "";
 let currentRegion = "";
 let timerInterval = null;
 let secondsElapsed = 0;
+let testScore = 0;
 
 let currentBGM = null;
 let globalVolume = 0.4;
@@ -12,7 +13,6 @@ let isDefaultBgmPlaying = false;
 let effectSound = new Audio();
 let hoverSound = new Audio();
 
-// 📌 100% 자동화된 교수님 데이터베이스! (파일만 넣으면 알아서 작동합니다)
 const professorBGM = { 
     "김종근 교수님": "assets/bgm_kim.mp3", 
     "임은진 교수님": "assets/bgm_lim.mp3", 
@@ -22,13 +22,20 @@ const professorBGM = {
     "김성일 조교쌤": "assets/bgm_jo.mp3" 
 };
 
+// 📌 모든 교수님, 조교쌤 보이스 데이터베이스 연동
 const voiceData = {
     "김종근 교수님": { hover: "assets/kim_hover.mp3", correct: "assets/kim_correct.mp3", wrong: "assets/kim_wrong.mp3", finish: "assets/kim_finish.mp3" },
     "임은진 교수님": { hover: "assets/lim_hover.mp3", correct: "assets/lim_correct.mp3", wrong: "assets/lim_wrong.mp3", finish: "assets/lim_finish.mp3" },
     "유재진 교수님": { hover: "assets/yoo_hover.mp3", correct: "assets/yoo_correct.mp3", wrong: "assets/yoo_wrong.mp3", finish: "assets/yoo_finish.mp3" },
     "류주현 교수님": { hover: "assets/ryu_hover.mp3", correct: "assets/ryu_correct.mp3", wrong: "assets/ryu_wrong.mp3", finish: "assets/ryu_finish.mp3" },
     "박지훈 교수님": { hover: "assets/park_hover.mp3", correct: "assets/park_correct.mp3", wrong: "assets/park_wrong.mp3", finish: "assets/park_finish.mp3" },
-    "김성일 조교쌤": { correct: "assets/snd_correct.mp3", wrong: "assets/snd_wrong.mp3", finish: "assets/snd_correct.mp3" }
+    "김성일 조교쌤": { 
+        start: "assets/jo_start.mp3", 
+        welcome: "assets/jo_welcome.mp3", 
+        correct: "assets/snd_correct.mp3", 
+        wrong: "assets/snd_wrong.mp3", 
+        finish: "assets/jo_finish.mp3" 
+    }
 };
 
 const defaultBGM = "assets/bgm_default.mp3";
@@ -235,38 +242,26 @@ function playBGM(src) {
     currentBGM.loop = true;
     currentBGM.volume = globalVolume * 0.2; 
     currentBGM.muted = isMuted;
-    
-    // 파일이 없으면 에러가 나지 않고 조용히 무시함
     currentBGM.play().catch(e => {});
 }
 
 function playVoice(src) {
     if(!src || isMuted) return;
     effectSound.src = src;
-    
     let vol = globalVolume;
-    if (src.includes('kim_')) {
-        vol = Math.min(globalVolume * 2.0, 1.0); 
-    }
-    
+    if (src.includes('kim_')) vol = Math.min(globalVolume * 2.0, 1.0); 
     effectSound.volume = vol;
     effectSound.play().catch(e => {}); 
 }
 
-// 📌 모든 교수님 자동 적용!
 function playHoverVoice(profName) {
     if(isMuted || !voiceData[profName] || !voiceData[profName].hover) return;
-    
     let src = voiceData[profName].hover;
     hoverSound.src = src;
-    
     let vol = globalVolume;
-    if (src.includes('kim_')) {
-        vol = Math.min(globalVolume * 2.0, 1.0); 
-    }
-    
+    if (src.includes('kim_')) vol = Math.min(globalVolume * 2.0, 1.0); 
     hoverSound.volume = vol;
-    hoverSound.play().catch(e => {}); // 파일 없으면 스킵
+    hoverSound.play().catch(e => {}); 
 }
 
 document.body.addEventListener('click', () => {
@@ -307,6 +302,7 @@ function selectMode(mode) {
         document.getElementById('step-professor').classList.add('active');
     } else if (mode === 'test') {
         currentProfessor = '김성일 조교쌤';
+        if(voiceData["김성일 조교쌤"].start) playVoice(voiceData["김성일 조교쌤"].start);
         document.getElementById('step-region').classList.add('active');
     }
 }
@@ -317,6 +313,7 @@ function selectProfessor(prof) {
     document.getElementById('step-region').classList.add('active');
 }
 
+// 📌 [수정됨] 학습/시험 모드 무관하게 무조건 모든 문제(startGame)로 직행!
 function selectRegion(region) {
     currentRegion = region;
     currentQuestionList = [...regionData[region]].sort(() => Math.random() - 0.5);
@@ -329,16 +326,10 @@ function selectRegion(region) {
     }
 
     if (currentMode === 'test') {
-        document.getElementById('step-count').classList.add('active');
-    } else {
-        startGame();
+        if(voiceData["김성일 조교쌤"].welcome) playVoice(voiceData["김성일 조교쌤"].welcome);
     }
-}
-
-function setQuestionCount(count) {
-    if (count > 0 && count < currentQuestionList.length) {
-        currentQuestionList = currentQuestionList.slice(0, count);
-    }
+    
+    // 모드와 상관없이 문항 수 선택창 생략하고 바로 시작!
     startGame();
 }
 
@@ -356,6 +347,7 @@ function startTimer() {
 
 function startGame() {
     currentQuestionIndex = 0;
+    testScore = 0; 
     
     if (professorBGM[currentProfessor]) {
         playBGM(professorBGM[currentProfessor]);
@@ -410,41 +402,59 @@ function checkAnswer() {
     const q = currentQuestionList[currentQuestionIndex];
     const inCountry = document.getElementById('input-country').value.trim();
     const inCapital = document.getElementById('input-capital').value.trim();
+    
+    const isCorrect = (inCountry === q.country && inCapital === q.capital);
 
-    if (inCountry === q.country && inCapital === q.capital) {
+    if (isCorrect) {
         showPopup(`🎉 정답!`, true, 1200);
+        if (currentMode === 'test') testScore++; 
         
         if (voiceData[currentProfessor] && voiceData[currentProfessor].correct) {
             playVoice(voiceData[currentProfessor].correct);
         }
-
-        setTimeout(() => {
-            if (++currentQuestionIndex < currentQuestionList.length) {
-                showNextQuestion();
-            } else {
-                clearInterval(timerInterval);
-                const finalTime = document.getElementById('timer-display').innerText.replace('⏱️: ', '');
-                
-                const msg = currentMode === 'learning' 
-                    ? `🎓 종강이닷! (소요시간: ${finalTime})`
-                    : `💯 시험 종료! (${currentQuestionList.length}문제 완료)`;
-                
-                showPopup(msg, true, 3000);
-                
-                if (voiceData[currentProfessor] && voiceData[currentProfessor].finish) {
-                    playVoice(voiceData[currentProfessor].finish);
-                }
-                
-                setTimeout(() => { location.reload(); }, 3000);
-            }
-        }, 1300);
     } else {
-        showPopup(`❌ 오답입니다.`, false, 1200);
+        if (currentMode === 'test') {
+            showPopup(`❌ 오답!\n정답은 [${q.country} - ${q.capital}]`, false, 1500);
+        } else {
+            showPopup(`❌ 오답입니다.`, false, 1200);
+        }
         
         if (voiceData[currentProfessor] && voiceData[currentProfessor].wrong) {
             playVoice(voiceData[currentProfessor].wrong);
         }
     }
+
+    if (currentMode === 'test' || isCorrect) {
+        setTimeout(() => {
+            if (++currentQuestionIndex < currentQuestionList.length) {
+                showNextQuestion();
+            } else {
+                endGame(); 
+            }
+        }, currentMode === 'test' ? 1600 : 1300); 
+    }
+}
+
+function endGame() {
+    clearInterval(timerInterval);
+    let msg = "";
+    
+    if (currentMode === 'learning') {
+        const finalTime = document.getElementById('timer-display').innerText.replace('⏱️: ', '');
+        msg = `🎓 종강이닷!\n(소요시간: ${finalTime})`;
+    } else {
+        const total = currentQuestionList.length;
+        const percent = Math.round((testScore / total) * 100);
+        msg = `💯 시험 종료!\n점수: ${percent}점 (${testScore}/${total})`;
+    }
+    
+    showPopup(msg, true, 3000);
+    
+    if (voiceData[currentProfessor] && voiceData[currentProfessor].finish) {
+        playVoice(voiceData[currentProfessor].finish);
+    }
+    
+    setTimeout(() => { location.reload(); }, 3000);
 }
 
 function goHome() {
