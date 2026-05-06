@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>공주대학교 지리교육과 세계지도 여행</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="game-container">
+        <!-- 🎵 상단 네비게이션 바 -->
+        <div id="top-bar">
+            <button class="btn-home" onclick="goHome()">🏠 처음으로</button>
+            <div class="audio-controls">
+                <button id="mute-btn" class="btn-home" onclick="toggleMute()">🔊</button>
+                <input type="range" id="volume-slider" min="0" max="1" step="0.05" value="0.4" oninput="changeVolume(this.value)">
+            </div>
+            <span id="timer-display" style="display: none;">⏱️: 00:00</span>
+        </div>
+
+        <!-- 1단계: 메인 모드 선택 -->
+        <div id="step-mode" class="screen active">
+            <h1><img src="assets/jiho_main.jpg" class="title-mascot" alt="지호" onerror="this.style.display='none'"> 🌍 지리과라면 해야겠지?</h1>
+            <p>지호와 함께 원하는 모드를 선택하여 여행을 시작하세요!</p>
+            <div class="button-group">
+                <!-- 학습, 시험 모두 1.5단계로 넘어갑니다 -->
+                <button class="btn mode-btn" onclick="showSubMode('learn')">
+                    <img src="assets/jiho_learn.jpg" class="btn-mascot" onerror="this.style.display='none'">
+                    <br>📖 학습 모드
+                </button>
+                <button class="btn mode-btn" onclick="showSubMode('test')" style="background-color: #e67e22;">
+                    <img src="assets/jiho_test.jpg" class="btn-mascot" onerror="this.style.display='none'">
+                    <br>✍️ 시험 모드
+                </button>
+            </div>
+        </div>
+
+        <!-- 1.5단계: 세부 모드 선택 (국가 vs 국가+수도) -->
+        <div id="step-sub-mode" class="screen">
+            <h1 id="step-sub-mode-title">📖 어떻게 진행할까요?</h1>
+            <div class="button-group">
+                <button class="btn mode-btn" onclick="setSubMode('country')">
+                    <img src="assets/jiho_learn.jpg" class="btn-mascot" onerror="this.style.display='none'">
+                    <br>🗺️ 국가만
+                </button>
+                <button class="btn mode-btn" onclick="setSubMode('all')">
+                    <img src="assets/jiho_learn.jpg" class="btn-mascot" onerror="this.style.display='none'">
+                    <br>🏛️ 국가 + 수도
+                </button>
+            </div>
+        </div>
+
+        <!-- 2단계: 가이드 선택 -->
+        <div id="step-professor" class="screen">
+            <h1>👨‍🏫 함께할 교수님을 픽해주세요!</h1>
+            <div class="card-container">
+                <div class="card" onclick="selectProfessor('김종근 교수님')" onmouseenter="playHoverVoice('김종근 교수님')">
+                    <img src="assets/prof_kim.jpg" class="prof-img" alt="사진" onerror="this.style.display='none'">
+                    <h3>김종근 교수님</h3>
+                </div>
+                <div class="card" onclick="selectProfessor('임은진 교수님')" onmouseenter="playHoverVoice('임은진 교수님')">
+                    <img src="assets/prof_lim.jpg" class="prof-img" alt="사진" onerror="this.style.display='none'">
+                    <h3>임은진 교수님</h3>
+                </div>
+                <div class="card" onclick="selectProfessor('유재진 교수님')" onmouseenter="playHoverVoice('유재진 교수님')">
+                    <img src="assets/prof_yoo.jpg" class="prof-img" alt="사진" onerror="this.style.display='none'">
+                    <h3>유재진 교수님</h3>
+                </div>
+                <div class="card" onclick="selectProfessor('류주현 교수님')" onmouseenter="playHoverVoice('류주현 교수님')">
+                    <img src="assets/prof_ryu.jpg" class="prof-img" alt="사진" onerror="this.style.display='none'">
+                    <h3>류주현 교수님</h3>
+                </div>
+                <div class="card disabled-card">
+                    <img src="assets/prof_park.jpg" class="prof-img" alt="박지훈 교수님">
+                    <h3 style="color:#7f8c8d;">박지훈 교수님<br><small>(쉬는 중 ☕)</small></h3>
+                </div>
+            </div>
+        </div>
+
+        <!-- 3단계: 지역 선택 -->
+        <div id="step-region" class="screen">
+            <h1>✈️ 어디로 떠나볼까요?</h1>
+            
+            <h3 style="color: #2c3e50; margin-top: 20px; font-size: 18px;">🔹 아시아</h3>
+            <div class="button-group">
+                <button class="btn region-btn" onclick="selectRegion('NortheastAsia')">동북아시아</button>
+                <button class="btn region-btn" onclick="selectRegion('SoutheastAsia')">동남아시아</button>
+                <button class="btn region-btn" onclick="selectRegion('SouthAsia')">남부아시아</button>
+                <button class="btn region-btn" onclick="selectRegion('SouthwestAsia')">서남아시아</button>
+            </div>
+
+            <h3 style="color: #2c3e50; margin-top: 20px; font-size: 18px;">🔹 아메리카</h3>
+            <div class="button-group">
+                <button class="btn region-btn" onclick="selectRegion('NorthAmerica')">북아메리카</button>
+                <button class="btn region-btn" onclick="selectRegion('CentralAmerica')">중앙아메리카</button>
+                <button class="btn region-btn" onclick="selectRegion('SouthAmerica')">남아메리카</button>
+            </div>
+
+            <h3 style="color: #2c3e50; margin-top: 20px; font-size: 18px;">🔹 유럽 / 아프리카 / 오세아니아</h3>
+            <div class="button-group">
+                <button class="btn region-btn" onclick="selectRegion('Europe')">유럽</button>
+                <button class="btn region-btn" onclick="selectRegion('Africa')">아프리카</button>
+                <button class="btn region-btn" onclick="selectRegion('Oceania')">오세아니아</button>
+            </div>
+        </div>
+
+        <!-- 4단계: 메인 게임 -->
+        <div id="step-game" class="screen">
+            <h1 id="game-title">🌍 여행 중...</h1>
+            <div id="map-area">
+                <div id="map-inner">
+                    <img id="map-bg" src="" alt="지역 지도">
+                </div>
+                <div id="toast-popup">
+                    <img id="toast-img" src="" alt="리액션">
+                    <span id="toast-text">결과 메시지</span>
+                </div>
+            </div>
+            <div id="quiz-area">
+                <div class="quiz-instruction-box">
+                    <img src="assets/jiho_teach.jpg" class="teach-mascot" onerror="this.style.display='none'">
+                    <p id="quiz-instruction">📍 위치를 확인하고 정답을 적어주세요!</p>
+                </div>
+                <div id="input-group">
+                    <input type="text" id="input-country" placeholder="국가명" autocomplete="off">
+                    <input type="text" id="input-capital" placeholder="수도명" autocomplete="off">
+                </div>
+                <button class="btn" id="submit-btn" onclick="checkAnswer()">정답 확인</button>
+            </div>
+        </div>
+    </div>
+    <script src="script.js"></script>
+</body>
+</html>
